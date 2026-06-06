@@ -10,16 +10,13 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
   .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-  .card { background: var(--card); backdrop-filter: blur(20px); border-radius: 24px; padding: 35px 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  .card { background: var(--card); backdrop-filter: blur(20px); border-radius: 24px; padding: 35px 30px; border: 1px solid rgba(255,255,255,0.2); }
   h1 { font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 10px; background: linear-gradient(45deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .subtitle { text-align: center; opacity: 0.8; margin-bottom: 30px; }
-  input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: white; font-size: 1rem; font-family: 'Poppins'; }
-  input::placeholder { color: rgba(255,255,255,0.5); }
-  input:focus { outline: none; border-color: var(--primary); }
-  .btn { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 12px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #0f0c29; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
-  .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,215,0,0.3); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: white; font-size: 1rem; }
+  .btn { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 12px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #0f0c29; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
   .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
+  .btn:disabled { opacity: 0.5; }
   #game, #menu, #verify { display: none; }
   .hud { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 600; }
   .game-area { position: relative; height: 60vh; background: rgba(0,0,0,0.2); border-radius: 20px; overflow: hidden; }
@@ -33,7 +30,6 @@
 </head>
 <body>
 
-<!-- ECRAN CONNEXION -->
 <div class="container" id="auth">
   <div class="card">
     <h1>🪙 GOLD RUSH PRO</h1>
@@ -47,12 +43,10 @@
   </div>
 </div>
 
-<!-- ECRAN VERIF EMAIL -->
 <div class="container" id="verify">
   <div class="card">
     <h1>📧 Vérifie ton email</h1>
     <p class="subtitle">On t'a envoyé un lien à <span id="verifyEmail"></span></p>
-    <p style="opacity:0.8;margin:20px 0;">Check tes Spams Gmail. Clique le lien, puis reviens ici.</p>
     <div id="verifyMsg"></div>
     <button class="btn" onclick="checkVerified()">J'AI CLIQUÉ SUR LE LIEN</button>
     <button class="btn btn-secondary" id="resendBtn" onclick="resendEmail()">RENVOYER L'EMAIL</button>
@@ -60,7 +54,6 @@
   </div>
 </div>
 
-<!-- ECRAN MENU -->
 <div class="container" id="menu">
   <div class="card">
     <h1>Salut <span id="playerName"></span> ! 👋</h1>
@@ -70,7 +63,6 @@
   </div>
 </div>
 
-<!-- ECRAN JEU -->
 <div class="container" id="game">
   <div class="hud">
     <div>🪙 <span id="score">0</span>/<span id="target">10</span></div>
@@ -80,7 +72,6 @@
   <div class="game-area" id="gameArea"></div>
 </div>
 
-<!-- MODAL VICTOIRE -->
 <div class="modal" id="winModal">
   <div class="card">
     <h1>🎉 VICTOIRE ! 🎉</h1>
@@ -91,10 +82,12 @@
 </div>
 
 <script type="module">
+  // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCYRPhUUP6wsKqv2v_XoK_cofPaOTeU8DU",
     authDomain: "jeuxligne-36797.firebaseapp.com",
@@ -104,6 +97,7 @@
     appId: "1:1034045917284:web:163080c85746f3fc6af771"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -152,7 +146,7 @@
       await sendEmailVerification(userCred.user);
       msg.innerHTML = '<div class="msg success">Compte créé ! Check tes Spams Gmail 🥰</div>';
     } catch (e) {
-      msg.innerHTML = `<div class="msg error">${e.code === 'auth/email-already-in-use' ? 'Cet email est déjà utilisé 😘' : e.message}</div>`;
+      msg.innerHTML = `<div class="msg error">${e.code === 'auth/email-already-in-use' ? 'Cet email est déjà utilisé' : e.message}</div>`;
     }
     document.getElementById('signupBtn').disabled = false;
   }
@@ -174,7 +168,7 @@
     btn.disabled = true;
     try {
       await sendEmailVerification(auth.currentUser);
-      msg.innerHTML = '<div class="msg success">Email renvoyé ! Check Spams + Promotions Gmail 💪</div>';
+      msg.innerHTML = '<div class="msg success">Email renvoyé ! Check Spams + Promotions Gmail</div>';
     } catch (e) {
       msg.innerHTML = '<div class="msg error">Attends 1 min avant de renvoyer</div>';
     }

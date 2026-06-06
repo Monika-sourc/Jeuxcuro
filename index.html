@@ -1,340 +1,57 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gold Rush Pro 🪙</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-  :root { --primary: #FFD700; --bg: #0f0c29; --card: rgba(255,255,255,0.1); }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
-  .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-  .card { background: var(--card); backdrop-filter: blur(20px); border-radius: 24px; padding: 35px 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-  h1 { font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 10px; background: linear-gradient(45deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .subtitle { text-align: center; opacity: 0.8; margin-bottom: 30px; }
-  input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: white; font-size: 1rem; font-family: 'Poppins'; }
-  input::placeholder { color: rgba(255,255,255,0.5); }
-  input:focus { outline: none; border-color: var(--primary); }
-  .btn { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 12px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #0f0c29; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
-  .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,215,0,0.3); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
-  .link { text-align: center; margin-top: 20px; opacity: 0.8; cursor: pointer; text-decoration: underline; }
-  .link:hover { opacity: 1; }
-  #loginScreen, #signupScreen, #game, #menu, #verify { display: none; }
-  .hud { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 600; }
-  .game-area { position: relative; height: 60vh; background: rgba(0,0,0,0.2); border-radius: 20px; overflow: hidden; }
-  .coin { position: absolute; font-size: 45px; cursor: pointer; animation: float 3s ease-in-out infinite; user-select: none; }
-  @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0deg); } 50% { transform: translateY(-20px) rotateY(180deg); } }
-  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; }
-  .msg { margin: 10px 0; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
-  .error { background: rgba(255,0,0,0.2); border: 1px solid rgba(255,0,0,0.3); }
-  .success { background: rgba(0,255,0,0.2); border: 1px solid rgba(0,255,0,0.3); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial; max-width: 400px; margin: 50px auto; padding: 20px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #3ecf8e; color: white; border: none; cursor: pointer; }
+        #message { margin-top: 15px; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
 </head>
 <body>
+    <h2>Créer un compte</h2>
+    <form id="signup-form">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mot de passe" required>
+        <button type="submit">S'inscrire</button>
+    </form>
+    <div id="message"></div>
 
-<div class="container" id="signupScreen">
-  <div class="card">
-    <h1>🪙 GOLD RUSH PRO</h1>
-    <p class="subtitle">Créer un nouveau compte</p>
-    <input type="text" id="signupPseudo" placeholder="Pseudo de joueur" autocomplete="username">
-    <input type="email" id="signupEmail" placeholder="Email Gmail" autocomplete="email">
-    <input type="password" id="signupPassword" placeholder="Mot de passe 6 caractères min" autocomplete="new-password">
-    <div id="signupMsg"></div>
-    <button class="btn" id="signupBtn" onclick="signUp()">CRÉER MON COMPTE</button>
-    <p class="link" onclick="showLogin()">J'ai déjà un compte</p>
-  </div>
-</div>
+    <script>
+        // ⚠️ REMPLACE ÇA par tes infos Supabase
+        const SUPABASE_URL = 'TA_URL_ICI' 
+        const SUPABASE_ANON_KEY = 'TA_CLE_ANON_ICI'
 
-<div class="container" id="loginScreen">
-  <div class="card">
-    <h1>🪙 GOLD RUSH PRO</h1>
-    <p class="subtitle">Connexion à ton compte</p>
-    <input type="email" id="loginEmail" placeholder="Email Gmail" autocomplete="email">
-    <input type="password" id="loginPassword" placeholder="Mot de passe" autocomplete="current-password">
-    <div id="loginMsg"></div>
-    <button class="btn" id="loginBtn" onclick="login()">SE CONNECTER</button>
-    <p class="link" onclick="showSignup()">Créer un compte</p>
-  </div>
-</div>
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        const form = document.getElementById('signup-form')
+        const messageDiv = document.getElementById('message')
 
-<div class="container" id="verify">
-  <div class="card">
-    <h1>📧 Vérifie ton email</h1>
-    <p class="subtitle">On t'a envoyé un lien à <strong id="verifyEmail"></strong></p>
-    <p style="opacity:0.8;margin:20px 0;">Check tes Spams Gmail. Clique le lien, puis reviens ici.</p>
-    <div id="verifyMsg"></div>
-    <button class="btn" onclick="checkVerified()">J'AI CLIQUÉ SUR LE LIEN</button>
-    <button class="btn btn-secondary" id="resendBtn" onclick="resendEmail()">RENVOYER L'EMAIL</button>
-    <button class="btn btn-secondary" onclick="logout()">ANNULER</button>
-  </div>
-</div>
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            
+            const email = document.getElementById('email').value
+            const password = document.getElementById('password').value
+            messageDiv.textContent = 'Inscription en cours...'
 
-<div class="container" id="menu">
-  <div class="card">
-    <h1>Salut <span id="playerName"></span> ! 👋</h1>
-    <p class="subtitle">Niveau <span id="playerLevel">1</span> | Meilleur score : <span id="bestScore">0</span> 🪙</p>
-    <button class="btn" onclick="startGame()">▶ JOUER NIVEAU <span id="nextLevel">1</span></button>
-    <button class="btn btn-secondary" onclick="logout()">DÉCONNEXION</button>
-  </div>
-</div>
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password
+            })
 
-<div class="container" id="game">
-  <div class="hud">
-    <div>🪙 <span id="score">0</span>/<span id="target">10</span></div>
-    <div>⏱️ <span id="timer">30</span>s</div>
-    <div>⭐ Niveau <span id="level">1</span></div>
-  </div>
-  <div class="game-area" id="gameArea"></div>
-</div>
-
-<div class="modal" id="winModal">
-  <div class="card">
-    <h1>🎉 VICTOIRE ! 🎉</h1>
-    <p style="font-size:1.2rem;margin:20px 0;">Tu as ramassé <span id="winScore"></span> pièces !</p>
-    <button class="btn" onclick="nextLevel()">NIVEAU SUIVANT</button>
-    <button class="btn btn-secondary" onclick="backToMenu()">MENU</button>
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCYRPhUUP6wsKqv2v_XoK_cofPaOTeU8DU",
-    authDomain: "jeuxligne-36797.firebaseapp.com",
-    projectId: "jeuxligne-36797",
-    storageBucket: "jeuxligne-36797.firebasestorage.app",
-    messagingSenderId: "1034045917284",
-    appId: "1:1034045917284:web:163080c85746f3fc6af771"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  
-  let player = { level: 1, bestScore: 0, pseudo: "" };
-  let game = { score: 0, time: 30, running: false, target: 10 };
-  let intervals = [];
-
-  onAuthStateChanged(auth, async (user) => {
-    try {
-      if (user) {
-        if (!user.emailVerified) {
-          showVerify(user.email);
-          return;
-        }
-        const docRef = doc(db, "players", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          player = docSnap.data();
-        }
-        showMenu();
-      } else {
-        showSignup();
-      }
-    } catch (error) {
-      console.error("Erreur Auth:", error);
-      showSignup();
-    }
-  });
-
-  window.signUp = async () => {
-    const pseudo = document.getElementById('signupPseudo').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const pass = document.getElementById('signupPassword').value;
-    const msg = document.getElementById('signupMsg');
-    
-    if (!pseudo || !email || !pass) {
-      msg.innerHTML = '<div class="msg error">Remplis tous les champs</div>';
-      return;
-    }
-    if (pass.length < 6) {
-      msg.innerHTML = '<div class="msg error">Mot de passe : 6 caractères minimum</div>';
-      return;
-    }
-    
-    document.getElementById('signupBtn').disabled = true;
-    msg.innerHTML = '';
-    
-    try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-      player.pseudo = pseudo;
-      await setDoc(doc(db, "players", userCred.user.uid), player);
-      await sendEmailVerification(userCred.user);
-      msg.innerHTML = '<div class="msg success">Compte créé ! Check tes Spams Gmail 🥰</div>';
-    } catch (e) {
-      let errorText = 'Erreur inconnue';
-      if (e.code === 'auth/email-already-in-use') errorText = 'Cet email est déjà utilisé. Connecte-toi !';
-      else if (e.code === 'auth/invalid-email') errorText = 'Email invalide';
-      else if (e.code === 'auth/weak-password') errorText = 'Mot de passe trop faible';
-      msg.innerHTML = `<div class="msg error">${errorText}</div>`;
-    }
-    document.getElementById('signupBtn').disabled = false;
-  }
-
-  window.login = async () => {
-    const email = document.getElementById('loginEmail').value.trim();
-    const pass = document.getElementById('loginPassword').value;
-    const msg = document.getElementById('loginMsg');
-    
-    if (!email || !pass) {
-      msg.innerHTML = '<div class="msg error">Remplis email et mot de passe</div>';
-      return;
-    }
-    
-    document.getElementById('loginBtn').disabled = true;
-    msg.innerHTML = '';
-    
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-      msg.innerHTML = '<div class="msg error">Email ou mot de passe incorrect</div>';
-    }
-    document.getElementById('loginBtn').disabled = false;
-  }
-
-  window.resendEmail = async () => {
-    const btn = document.getElementById('resendBtn');
-    const msg = document.getElementById('verifyMsg');
-    btn.disabled = true;
-    try {
-      await sendEmailVerification(auth.currentUser);
-      msg.innerHTML = '<div class="msg success">Email renvoyé ! Check Spams + Promotions</div>';
-    } catch (e) {
-      msg.innerHTML = '<div class="msg error">Attends 1 minute avant de renvoyer</div>';
-    }
-    setTimeout(() => { btn.disabled = false; }, 60000);
-  }
-
-  window.checkVerified = async () => {
-    await auth.currentUser.reload();
-    if (auth.currentUser.emailVerified) {
-      location.reload();
-    } else {
-      document.getElementById('verifyMsg').innerHTML = '<div class="msg error">Pas encore vérifié. Clique le lien dans Gmail !</div>';
-    }
-  }
-
-  window.logout = () => signOut(auth);
-
-  window.showLogin = () => {
-    document.getElementById('signupScreen').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('verify').style.display = 'none';
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('game').style.display = 'none';
-    document.getElementById('loginMsg').innerHTML = '';
-  }
-
-  window.showSignup = () => {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('signupScreen').style.display = 'flex';
-    document.getElementById('verify').style.display = 'none';
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('game').style.display = 'none';
-    document.getElementById('signupMsg').innerHTML = '';
-  }
-
-  function showVerify(email) {
-    document.getElementById('signupScreen').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('verify').style.display = 'flex';
-    document.getElementById('verifyEmail').innerText = email;
-  }
-
-  function showMenu() {
-    document.getElementById('signupScreen').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('verify').style.display = 'none';
-    document.getElementById('game').style.display = 'none';
-    document.getElementById('menu').style.display = 'flex';
-    document.getElementById('playerName').innerText = player.pseudo;
-    document.getElementById('playerLevel').innerText = player.level;
-    document.getElementById('bestScore').innerText = player.bestScore;
-    document.getElementById('nextLevel').innerText = player.level;
-  }
-
-  window.startGame = () => {
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('game').style.display = 'flex';
-    game.score = 0;
-    game.time = 30 - (player.level * 2);
-    game.target = 10 + (player.level * 2);
-    game.running = true;
-    document.getElementById('level').innerText = player.level;
-    document.getElementById('target').innerText = game.target;
-    updateHUD();
-    intervals.push(setInterval(createCoin, 700 - player.level * 50));
-    intervals.push(setInterval(tick, 1000));
-  }
-
-  function createCoin() {
-    if (!game.running) return;
-    const area = document.getElementById('gameArea');
-    const coin = document.createElement('div');
-    coin.className = 'coin';
-    coin.innerHTML = Math.random() > 0.8 ? '💎' : '🪙';
-    coin.style.left = Math.random() * (area.clientWidth - 50) + 'px';
-    coin.style.top = Math.random() * (area.clientHeight - 50) + 'px';
-    coin.onclick = () => {
-      game.score += coin.innerHTML === '💎' ? 3 : 1;
-      coin.remove(); 
-      updateHUD();
-      if (game.score >= game.target) win();
-    }
-    area.appendChild(coin);
-    setTimeout(() => coin.remove(), 2500 - player.level * 100);
-  }
-
-  function tick() { 
-    game.time--; 
-    updateHUD(); 
-    if (game.time <= 0) lose(); 
-  }
-  
-  function updateHUD() { 
-    document.getElementById('score').innerText = game.score; 
-    document.getElementById('timer').innerText = game.time; 
-  }
-
-  async function win() {
-    game.running = false; 
-    intervals.forEach(clearInterval);
-    intervals = [];
-    player.level++;
-    if (game.score > player.bestScore) player.bestScore = game.score;
-    await updateDoc(doc(db, "players", auth.currentUser.uid), player);
-    document.getElementById('winScore').innerText = game.score;
-    document.getElementById('winModal').style.display = 'flex';
-  }
-
-  function lose() {
-    game.running = false; 
-    intervals.forEach(clearInterval);
-    intervals = [];
-    alert(`Dommage ! Score : ${game.score}/${game.target}`);
-    backToMenu();
-  }
-
-  window.nextLevel = () => {
-    document.getElementById('winModal').style.display = 'none';
-    document.getElementById('gameArea').innerHTML = '';
-    startGame();
-  }
-
-  window.backToMenu = () => {
-    game.running = false; 
-    intervals.forEach(clearInterval);
-    intervals = [];
-    document.getElementById('winModal').style.display = 'none';
-    document.getElementById('gameArea').innerHTML = '';
-    showMenu();
-  }
-</script>
+            if (error) {
+                messageDiv.className = 'error'
+                messageDiv.textContent = 'Erreur: ' + error.message
+            } else {
+                messageDiv.className = 'success'
+                messageDiv.textContent = 'Inscription réussie ! Vérifie ta boîte mail pour confirmer ton compte.'
+            }
+        })
+    </script>
 </body>
 </html>

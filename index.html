@@ -35,7 +35,6 @@
 </head>
 <body>
 
-<!-- ECRAN INSCRIPTION -->
 <div class="container" id="signupScreen">
   <div class="card">
     <h1>🪙 GOLD RUSH PRO</h1>
@@ -49,7 +48,6 @@
   </div>
 </div>
 
-<!-- ECRAN CONNEXION -->
 <div class="container" id="loginScreen">
   <div class="card">
     <h1>🪙 GOLD RUSH PRO</h1>
@@ -62,7 +60,6 @@
   </div>
 </div>
 
-<!-- ECRAN VERIF EMAIL -->
 <div class="container" id="verify">
   <div class="card">
     <h1>📧 Vérifie ton email</h1>
@@ -75,7 +72,6 @@
   </div>
 </div>
 
-<!-- ECRAN MENU -->
 <div class="container" id="menu">
   <div class="card">
     <h1>Salut <span id="playerName"></span> ! 👋</h1>
@@ -85,7 +81,6 @@
   </div>
 </div>
 
-<!-- ECRAN JEU -->
 <div class="container" id="game">
   <div class="hud">
     <div>🪙 <span id="score">0</span>/<span id="target">10</span></div>
@@ -95,7 +90,6 @@
   <div class="game-area" id="gameArea"></div>
 </div>
 
-<!-- MODAL VICTOIRE -->
 <div class="modal" id="winModal">
   <div class="card">
     <h1>🎉 VICTOIRE ! 🎉</h1>
@@ -127,25 +121,28 @@
   let game = { score: 0, time: 30, running: false, target: 10 };
   let intervals = [];
 
-  // Gestion de l'état de connexion
   onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      if (!user.emailVerified) {
-        showVerify(user.email);
-        return;
+    try {
+      if (user) {
+        if (!user.emailVerified) {
+          showVerify(user.email);
+          return;
+        }
+        const docRef = doc(db, "players", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          player = docSnap.data();
+        }
+        showMenu();
+      } else {
+        showSignup();
       }
-      const docRef = doc(db, "players", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        player = docSnap.data();
-      }
-      showMenu();
-    } else {
+    } catch (error) {
+      console.error("Erreur Auth:", error);
       showSignup();
     }
   });
 
-  // INSCRIPTION
   window.signUp = async () => {
     const pseudo = document.getElementById('signupPseudo').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
@@ -180,7 +177,6 @@
     document.getElementById('signupBtn').disabled = false;
   }
 
-  // CONNEXION
   window.login = async () => {
     const email = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPassword').value;
@@ -226,7 +222,6 @@
 
   window.logout = () => signOut(auth);
 
-  // Navigation entre écrans
   window.showLogin = () => {
     document.getElementById('signupScreen').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
@@ -264,7 +259,6 @@
     document.getElementById('nextLevel').innerText = player.level;
   }
 
-  // JEU
   window.startGame = () => {
     document.getElementById('menu').style.display = 'none';
     document.getElementById('game').style.display = 'flex';

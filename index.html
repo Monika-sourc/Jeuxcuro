@@ -8,11 +8,7 @@
 <style>
   :root { --primary: #FFD700; --bg: #0f0c29; --card: rgba(255,255,255,0.1); }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    color: white; min-height: 100vh;
-  }
+  body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; min-height: 100vh; }
   .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
   .card { background: var(--card); backdrop-filter: blur(20px); border-radius: 24px; padding: 35px 30px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
   h1 { font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 10px; background: linear-gradient(45deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -23,6 +19,7 @@
   .btn { width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 12px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #0f0c29; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
   .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,215,0,0.3); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
   #game, #menu, #verify { display: none; }
   .hud { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 600; }
   .game-area { position: relative; height: 60vh; background: rgba(0,0,0,0.2); border-radius: 20px; overflow: hidden; }
@@ -46,7 +43,7 @@
     <input type="password" id="password" placeholder="Mot de passe 6 caractères min">
     <div id="authMsg"></div>
     <button class="btn" id="signupBtn" onclick="signUp()">CRÉER MON COMPTE</button>
-    <button class="btn" style="background:rgba(255,255,255,0.1);color:white;" onclick="login()">J'AI DÉJÀ UN COMPTE</button>
+    <button class="btn btn-secondary" onclick="login()">J'AI DÉJÀ UN COMPTE</button>
   </div>
 </div>
 
@@ -55,9 +52,11 @@
   <div class="card">
     <h1>📧 Vérifie ton email</h1>
     <p class="subtitle">On t'a envoyé un lien à <span id="verifyEmail"></span></p>
-    <p style="opacity:0.8;margin:20px 0;">Va dans Gmail, clique le lien, puis reviens ici.</p>
+    <p style="opacity:0.8;margin:20px 0;">Check tes Spams Gmail. Clique le lien, puis reviens ici.</p>
+    <div id="verifyMsg"></div>
     <button class="btn" onclick="checkVerified()">J'AI CLIQUÉ SUR LE LIEN</button>
-    <button class="btn" style="background:rgba(255,255,255,0.1);color:white;" onclick="logout()">ANNULER</button>
+    <button class="btn btn-secondary" id="resendBtn" onclick="resendEmail()">RENVOYER L'EMAIL</button>
+    <button class="btn btn-secondary" onclick="logout()">ANNULER</button>
   </div>
 </div>
 
@@ -67,7 +66,7 @@
     <h1>Salut <span id="playerName"></span> ! 👋</h1>
     <p class="subtitle">Niveau <span id="playerLevel">1</span> | Meilleur score : <span id="bestScore">0</span> 🪙</p>
     <button class="btn" onclick="startGame()">▶ JOUER NIVEAU <span id="nextLevel">1</span></button>
-    <button class="btn" style="background:rgba(255,255,255,0.1);color:white;" onclick="logout()">DÉCONNEXION</button>
+    <button class="btn btn-secondary" onclick="logout()">DÉCONNEXION</button>
   </div>
 </div>
 
@@ -87,7 +86,7 @@
     <h1>🎉 VICTOIRE ! 🎉</h1>
     <p style="font-size:1.2rem;margin:20px 0;">Tu as ramassé <span id="winScore"></span> pièces !</p>
     <button class="btn" onclick="nextLevel()">NIVEAU SUIVANT</button>
-    <button class="btn" style="background:rgba(255,255,255,0.1);color:white;" onclick="backToMenu()">MENU</button>
+    <button class="btn btn-secondary" onclick="backToMenu()">MENU</button>
   </div>
 </div>
 
@@ -151,7 +150,7 @@
       player.pseudo = pseudo;
       await setDoc(doc(db, "players", userCred.user.uid), player);
       await sendEmailVerification(userCred.user);
-      msg.innerHTML = '<div class="msg success">Compte créé ! Vérifie ton Gmail 🥰</div>';
+      msg.innerHTML = '<div class="msg success">Compte créé ! Check tes Spams Gmail 🥰</div>';
     } catch (e) {
       msg.innerHTML = `<div class="msg error">${e.code === 'auth/email-already-in-use' ? 'Cet email est déjà utilisé 😘' : e.message}</div>`;
     }
@@ -169,12 +168,25 @@
     }
   }
 
+  window.resendEmail = async () => {
+    const btn = document.getElementById('resendBtn');
+    const msg = document.getElementById('verifyMsg');
+    btn.disabled = true;
+    try {
+      await sendEmailVerification(auth.currentUser);
+      msg.innerHTML = '<div class="msg success">Email renvoyé ! Check Spams + Promotions Gmail 💪</div>';
+    } catch (e) {
+      msg.innerHTML = '<div class="msg error">Attends 1 min avant de renvoyer</div>';
+    }
+    setTimeout(() => { btn.disabled = false; }, 60000);
+  }
+
   window.checkVerified = async () => {
     await auth.currentUser.reload();
     if (auth.currentUser.emailVerified) {
       location.reload();
     } else {
-      alert("Tu n'as pas encore cliqué sur le lien dans Gmail !");
+      document.getElementById('verifyMsg').innerHTML = '<div class="msg error">Pas encore vérifié. Clique le lien dans Gmail d\'abord !</div>';
     }
   }
 
